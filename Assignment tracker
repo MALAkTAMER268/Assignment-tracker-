@@ -1,0 +1,264 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+using namespace std;
+
+// Assignment Tracker
+class Assignment {
+public:
+    string name;
+    string deadline;
+
+    Assignment(string n, string d) {
+        name = n;
+        deadline = d;
+    }
+};
+
+// Quiz Tracker
+class Quiz {
+public:
+    string name;
+    string deadline;
+
+    Quiz(string n, string d) {
+        name = n;
+        deadline = d;
+    }
+};
+
+// class for Course
+class Course {
+protected:
+    string courseName;
+    vector<string> lectures;
+    vector<Assignment> assignments;
+    vector<Quiz> quizzes;
+    int courseLevel;
+
+public:
+    Course(string name, int level) : courseName(name), courseLevel(level) {}
+
+    void addLecture(const string& lecture) {
+        lectures.push_back(lecture);
+    }
+
+    void addAssignment(const string& name, const string& deadline) {
+        assignments.push_back(Assignment(name, deadline));
+    }
+
+    void addQuiz(const string& name, const string& deadline) {
+        quizzes.push_back(Quiz(name, deadline));
+    }
+
+    string getCourseName() const {
+        return courseName;
+    }
+
+    int getCourseLevel() const {
+        return courseLevel;
+    }
+    void display() const {
+        cout << "Course: " << courseName << endl;
+        cout << "Lectures:";
+        for (const auto& lecture : lectures) {
+            cout << " - " << lecture << endl;
+        }
+        if (!assignments.empty()) {
+            cout << "Assignments:";
+            for (const auto& assignment : assignments) {
+                cout << " - " << assignment.name << " (Deadline: " << assignment.deadline << ")" << endl;
+            }
+        }
+        if (!quizzes.empty()) {
+            cout << "Quizzes:";
+            for (const auto& quiz : quizzes) {
+                cout << " - " << quiz.name << " (Deadline: " << quiz.deadline << ")" << endl;
+            }
+        }
+        cout << endl;
+    }
+
+    void displayToFile(ofstream& outFile) const {
+        outFile << "Course: " << courseName << endl;
+        outFile << "Lectures:";
+        for (const auto& lecture : lectures) {
+            outFile << " - " << lecture << endl;
+        }
+        if (!assignments.empty()) {
+            outFile << "Assignments:";
+            for (const auto& assignment : assignments) {
+                outFile << " - " << assignment.name << " (Deadline: " << assignment.deadline << ")" << endl;
+            }
+        }
+        if (!quizzes.empty()) {
+            outFile << "Quizzes:";
+            for (const auto& quiz : quizzes) {
+                outFile << " - " << quiz.name << " (Deadline: " << quiz.deadline << ")" << endl;
+            }
+        }
+        outFile << endl;
+    }
+};
+
+// Level 1 Course
+class Level1Course : public Course {
+public:
+    Level1Course(string name) : Course(name, 1) {}
+    void display() const {
+        cout << "Level 1 Course: " << getCourseName() << endl;
+        Course::display();
+    }
+};
+
+// Level 2 Course
+class Level2Course : public Course {
+public:
+    Level2Course(string name) : Course(name, 2) {}
+    void display() const {
+        cout << "Level 2 Course: " << getCourseName() << endl;
+        Course::display();
+    }
+};
+
+// Level 3 Course
+class Level3Course : public Course {
+public:
+    Level3Course(string name) : Course(name, 3) {}
+    void display() const {
+        cout << "Level 3 Course: " << getCourseName() << endl;
+        Course::display();
+    }
+};
+
+// Level 4 Course
+class Level4Course : public Course {
+public:
+    Level4Course(string name) : Course(name, 4) {}
+    void display() const {
+        cout << "Level 4 Course: " << getCourseName() << endl;
+        Course::display();
+    }
+};
+
+// Student class
+class Student {
+public:
+    string name;
+    string id;
+    int level;
+    string selectedCourseName = "";
+
+    Student(string n, string i, int l) : name(n), id(i), level(l) {}
+
+    void chooseCourse(Course** courses, int totalCourses) {
+        vector<Course*> availableCourses;
+        for (int i = 0; i < totalCourses; i++) {
+            if (courses[i]->getCourseLevel() == level) {
+                availableCourses.push_back(courses[i]);
+            }
+        }
+
+        if (availableCourses.empty()) {
+            cout << "No courses available for this level." << endl;
+            return;
+        }
+
+        cout << "Available courses for level " << level << ":" << endl;
+        for (int i = 0; i < availableCourses.size(); i++) {
+            cout << i + 1 << ". " << availableCourses[i]->getCourseName() << endl;
+        }
+
+        int courseChoice;
+        cout << "Select a course (1-" << availableCourses.size() << "): ";
+        cin >> courseChoice;
+
+        if (courseChoice < 1 || courseChoice > availableCourses.size()) {
+            cout << "Invalid choice. Please try again." << endl;
+            return;
+        }
+
+        selectedCourseName = availableCourses[courseChoice - 1]->getCourseName();
+        availableCourses[courseChoice - 1]->display();
+    }
+
+    void saveToFile(ofstream& outFile, Course** allCourses, int totalCourses) const {
+        outFile << "Student Name: " << name << endl;
+        outFile << "Student ID: " << id << endl;
+        outFile << "Level: " << level << endl;
+
+        if (!selectedCourseName.empty()) {
+            outFile << "Selected Course:";
+            for (int i = 0; i < totalCourses; ++i) {
+                if (allCourses[i]->getCourseName() == selectedCourseName) {
+                    allCourses[i]->displayToFile(outFile);
+                    break;
+                }
+            }
+        }
+    }
+};
+
+void displayWelcomeMessage() {
+    cout << "==============================================\n";
+    cout << "   Welcome to El Ahram El Candia University\n";
+    cout << "==============================================\n";
+    cout << "   Please follow the steps to choose your courses\n";
+    cout << "==============================================\n\n";
+}
+
+void saveDataToFile(const Student& student, Course** courses, int totalCourses) {
+    ofstream outFile("student_data.txt");
+
+    if (outFile.is_open()) {
+        student.saveToFile(outFile, courses, totalCourses);
+        outFile.close();
+        cout << "Data saved to file successfully." << endl;
+    } else {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+int main() {
+    displayWelcomeMessage();
+
+    Course* courses[5];
+    courses[0] = new Level1Course("Object-Oriented Programming");
+    courses[1] = new Level1Course("Calculus");
+    courses[2] = new Level2Course("Programming Concepts");
+    courses[3] = new Level3Course("Machine Learning");
+    courses[4] = new Level4Course("Robotics");
+
+    courses[0]->addLecture("Lecture 1: Introduction to OOP");
+    courses[0]->addAssignment("Assignment 1", "2025-05-15");
+    courses[0]->addQuiz("Quiz 1", "2025-05-10");
+
+    courses[1]->addLecture("Lecture 1: Differentiation");
+    courses[1]->addAssignment("Assignment 1", "2025-05-20");
+    courses[1]->addQuiz("Quiz 1", "2025-05-18");
+
+    courses[2]->addLecture("Lecture 1: Basic Concepts");
+    courses[3]->addLecture("Lecture 1: Introduction to ML");
+
+    string name, id;
+    int level;
+    cout << "Enter your name: ";
+    cin >> name;
+    cout << "Enter your ID: ";
+    cin >> id;
+    cout << "Enter your level (1, 2, 3, or 4): ";
+    cin >> level;
+
+    Student student(name, id, level);
+
+    student.chooseCourse(courses, 5);
+
+    saveDataToFile(student, courses, 5);
+
+    for (int i = 0; i < 5; i++) {
+        delete courses[i];
+    }
+
+    return 0;
+}
